@@ -1,0 +1,4 @@
+Tool_Type|Daily_Charge|Weekday_Charge|Weekend_Charge|Holiday_Charge
+Ladder|1.99|Y|Y|N
+Chainsaw|1.49|Y|N|Y
+Jackhammer|2.99|Y|N|N
