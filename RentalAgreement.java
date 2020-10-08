@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 
 public class RentalAgreement {
 	Tool tool;
-	ToolDetail toolDetail;
 	Integer rentalDays;
 	Integer chargeDays;
 	LocalDate checkOutDate;
@@ -18,8 +17,6 @@ public class RentalAgreement {
 	
 	public Tool getTool() { return tool; }
 	public void setTool(Tool tool) { this.tool = tool; }
-	public ToolDetail getToolDetail() { return toolDetail; }
-	public void setToolDetail(ToolDetail toolDetail) { this.toolDetail = toolDetail; }
 	public Integer getRentalDays() { return rentalDays; }
 	public void setRentalDays(Integer rentalDays) { this.rentalDays = rentalDays; }
 	public Integer getChargeDays() { return chargeDays; }

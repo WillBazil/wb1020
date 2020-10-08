@@ -42,12 +42,12 @@ class BazilToolRentalTests {
 		assert(rentalAgreement.getFinalCharge().equals(BigDecimal.valueOf(3.58).setScale(2)));
 	}
 
-	//Succeeds because input is valid and...
-	//Fri the 3rd is charged because while it is the date taken for the holiday of the 4th, chainsaws are charged on holidays
-	//Sat-Sun the 4th-5th are not charged because chainsaws don't have weekend charges
-	//Mon-Tue the 6th-7th are charged as normal weekdays, leaving 3 total charge days
-	//at $1.49 a day, charged for 3 days prior to discount, $4.47 is owed
-	//25% of that is $1.1175, rounded up to $1.12 leaving $3.35 owed
+//	//Succeeds because input is valid and...
+//	//Fri the 3rd is charged because while it is the date taken for the holiday of the 4th, chainsaws are charged on holidays
+//	//Sat-Sun the 4th-5th are not charged because chainsaws don't have weekend charges
+//	//Mon-Tue the 6th-7th are charged as normal weekdays, leaving 3 total charge days
+//	//at $1.49 a day, charged for 3 days prior to discount, $4.47 is owed
+//	//25% of that is $1.1175, rounded up to $1.12 leaving $3.35 owed
 	@Test
 	public final void testBazilToolRental_CHNS_7_2_15() throws Exception {
 		var rentalAgreement = BazilToolRental.run("CHNS", "7/2/15", 5, 25);

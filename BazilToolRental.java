@@ -27,24 +27,24 @@ public class BazilToolRental {
 	public static RentalAgreement run() throws Exception {
 		//chose to only import files once since it is being pulled from a txt file.
 		//under normal circumstances a DB would be hit on each request
-		var tools = importToolsFile(new File("C:\\Dev\\workspace\\workspace\\BazilToolRental\\src\\toolRental\\tools.txt"));
 		var toolDetails = importToolDetailsFile(new File("C:\\Dev\\workspace\\Workspace\\BazilToolRental\\src\\toolRental\\toolTypeDetails.txt"));
-		var rentalAgreement = checkOut(gatherInput(tools, toolDetails));
+		var tools = importToolsFile(new File("C:\\Dev\\workspace\\workspace\\BazilToolRental\\src\\toolRental\\tools.txt"), toolDetails);
+		var rentalAgreement = checkOut(gatherInput(tools));
 		rentalAgreement.printOut();
 		return rentalAgreement;
 	}
 
 	//Run with passed in inputs
 	public static RentalAgreement run(String toolCode, String checkoutDate, Integer rentalDays, Integer discountPercent) throws Exception {
-		var tools = importToolsFile(new File("C:\\Dev\\workspace\\workspace\\BazilToolRental\\src\\toolRental\\tools.txt"));
 		var toolDetails = importToolDetailsFile(new File("C:\\Dev\\workspace\\Workspace\\BazilToolRental\\src\\toolRental\\toolTypeDetails.txt"));
-		var rentalAgreement = checkOut(insertPassedInput(toolCode, checkoutDate, rentalDays, discountPercent, tools, toolDetails));
+		var tools = importToolsFile(new File("C:\\Dev\\workspace\\workspace\\BazilToolRental\\src\\toolRental\\tools.txt"), toolDetails);
+		var rentalAgreement = checkOut(insertPassedInput(toolCode, checkoutDate, rentalDays, discountPercent, tools));
 		rentalAgreement.printOut();
 		return rentalAgreement;
 	}
 	
 	//import data from tools.txt
-	private static HashMap<String, Tool> importToolsFile(File toolsFile) {
+	private static HashMap<String, Tool> importToolsFile(File toolsFile, HashMap<String, ToolDetail> toolDetails) {
 		var tools = new HashMap<String, Tool>();
 		try {
 			var br = new BufferedReader(new FileReader(toolsFile));
@@ -63,6 +63,7 @@ public class BazilToolRental {
 						tool.setCode(record.toUpperCase());
 					}
 					if(i == columns.length-1) {
+						tool.setToolDetail(toolDetails.get(tool.getType()));
 						tools.put(tool.getCode(), tool);
 					}
 				}
@@ -87,7 +88,7 @@ public class BazilToolRental {
 				for(var i = 0; i < columns.length; i++) {
 					var record = columns[i];
 					if(headers[i].equals("Tool_Type")) {
-						toolDetail.setToolType(record.toUpperCase());
+						toolDetail.setType(record.toUpperCase());
 					} if(headers[i].equals("Daily_Charge")) {
 						toolDetail.setDailyCharge(BigDecimal.valueOf(Double.parseDouble(record)));
 					} else if(headers[i].equals("Weekday_Charge")) {
@@ -98,7 +99,7 @@ public class BazilToolRental {
 						toolDetail.setHolidayCharge(record.equalsIgnoreCase("Y"));
 					}
 					if(i == columns.length-1) {
-						toolDetails.put(toolDetail.getToolType(), toolDetail);
+						toolDetails.put(toolDetail.getType(), toolDetail);
 					}
 				}
 			}
@@ -110,7 +111,7 @@ public class BazilToolRental {
 	}
 	
 	//gather checkout input and insert into a RentalAgreement object
-	private static RentalAgreement gatherInput(HashMap<String, Tool> tools, HashMap<String, ToolDetail> toolDetails) throws Exception {
+	private static RentalAgreement gatherInput(HashMap<String, Tool> tools) throws Exception {
 		var rentalAgreement = new RentalAgreement();
 		var scanner = new Scanner(System.in);
 		System.out.println("Enter Tool Code");
@@ -120,7 +121,6 @@ public class BazilToolRental {
 			toolCode = scanner.nextLine().toUpperCase();
 		}
 		rentalAgreement.setTool(tools.get(toolCode));
-		rentalAgreement.setToolDetail(toolDetails.get(rentalAgreement.getTool().getType()));
 		System.out.println("Rental Day Count");
 		var rentalDays = scanner.nextLine();
 		while(!rentalDays.matches("[0-9]+")) { //if entered value contains any non digits prompt for a positive whole number
@@ -165,14 +165,13 @@ public class BazilToolRental {
 	}
 	
 	//insert passed data into RentalAgreement object
-	private static RentalAgreement insertPassedInput(String toolCode, String checkoutDate, Integer rentalDays, Integer discountPercent, HashMap<String, Tool> tools, HashMap<String, ToolDetail> toolDetails) throws Exception {
+	private static RentalAgreement insertPassedInput(String toolCode, String checkoutDate, Integer rentalDays, Integer discountPercent, HashMap<String, Tool> tools) throws Exception {
 		var rentalAgreement = new RentalAgreement();
 		toolCode = toolCode.toUpperCase();
 		if(!tools.keySet().contains(toolCode)) { //if passed tool code wasn't imported throw error
 			throw new Exception("Invalid Tool Code ("+toolCode+"). Valids Codes : "+tools.keySet());
 		}
 		rentalAgreement.setTool(tools.get(toolCode));
-		rentalAgreement.setToolDetail(toolDetails.get(rentalAgreement.getTool().getType()));
 		if(rentalDays < 1) { //if passed rental days is less than 1 throw error
 			throw new Exception("Tools must be rented for atleast one day. Passed value is ("+rentalDays+")");
 		}
@@ -198,15 +197,15 @@ public class BazilToolRental {
 		var weekendDays = Stream.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY).collect(Collectors.toCollection(HashSet::new)); //set of days in weekend
 		var startDate = rentalAgreement.getCheckOutDate().plusDays(1); //start checking for charge days on the day following checkout
 		while(startDate.isBefore(rentalAgreement.getDueDate()) || startDate.isEqual(rentalAgreement.getDueDate())) { //check for charge days up to and including the due date
-			if(((rentalAgreement.getToolDetail().isWeekdayCharge() && !weekendDays.contains(startDate.getDayOfWeek())) || //If the date is a chargeable weekday or...
-					(rentalAgreement.getToolDetail().isWeekendCharge() && weekendDays.contains(startDate.getDayOfWeek()))) && //the date is a chargeable weekend and...
-					(rentalAgreement.getToolDetail().isHolidayCharge() || !isHoliday(startDate))) { //holidays can be charged or they can't and the date is a holiday
+			if(((rentalAgreement.getTool().getToolDetail().isWeekdayCharge() && !weekendDays.contains(startDate.getDayOfWeek())) || //If the date is a chargeable weekday or...
+					(rentalAgreement.getTool().getToolDetail().isWeekendCharge() && weekendDays.contains(startDate.getDayOfWeek()))) && //the date is a chargeable weekend and...
+					(rentalAgreement.getTool().getToolDetail().isHolidayCharge() || !isHoliday(startDate))) { //holidays can be charged or they can't and the date is a holiday
 				chargeDays ++;
 			}
 			startDate = startDate.plusDays(1);
 		}
 		rentalAgreement.setChargeDays(chargeDays);
-		rentalAgreement.setPreDiscountCharge(rentalAgreement.getToolDetail().getDailyCharge().multiply(BigDecimal.valueOf(rentalAgreement.getChargeDays())).setScale(2, RoundingMode.HALF_UP));
+		rentalAgreement.setPreDiscountCharge(rentalAgreement.getTool().getToolDetail().getDailyCharge().multiply(BigDecimal.valueOf(rentalAgreement.getChargeDays())).setScale(2, RoundingMode.HALF_UP));
 		rentalAgreement.setDiscountAmount(rentalAgreement.getPreDiscountCharge().multiply(BigDecimal.valueOf(rentalAgreement.getDiscountPercent()).multiply(BigDecimal.valueOf(0.01))).setScale(2, RoundingMode.HALF_UP));
 		rentalAgreement.setFinalCharge(rentalAgreement.getPreDiscountCharge().subtract(rentalAgreement.getDiscountAmount()));
 		return rentalAgreement;

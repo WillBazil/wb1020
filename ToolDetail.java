@@ -3,14 +3,14 @@ package toolRental;
 import java.math.BigDecimal;
 
 public class ToolDetail {
-	String toolType;
+	String type;
 	BigDecimal dailyCharge;
 	Boolean weekdayCharge;
 	Boolean weekendCharge;
 	Boolean holidayCharge;
 	
-	public String getToolType() { return toolType; }
-	public void setToolType(String toolType) { this.toolType = toolType; }
+	public String getType() { return type; }
+	public void setType(String type) { this.type = type; }
 	public BigDecimal getDailyCharge() { return dailyCharge; }
 	public void setDailyCharge(BigDecimal dailyCharge) { this.dailyCharge = dailyCharge; }
 	public Boolean isWeekdayCharge() { return weekdayCharge; }
