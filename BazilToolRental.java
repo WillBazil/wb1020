@@ -44,7 +44,7 @@ public class BazilToolRental {
 	}
 	
 	//import data from tools.txt
-	private static HashMap<String, Tool> importToolsFile(File toolsFile, HashMap<String, ToolDetail> toolDetails) {
+	private static HashMap<String, Tool> importToolsFile(File toolsFile, HashMap<String, ToolDetail> toolDetails) throws Exception {
 		var tools = new HashMap<String, Tool>();
 		try {
 			var br = new BufferedReader(new FileReader(toolsFile));
@@ -63,7 +63,15 @@ public class BazilToolRental {
 						tool.setCode(record.toUpperCase());
 					}
 					if(i == columns.length-1) {
+						if(toolDetails.get(tool.getType()) == null) {
+							br.close();
+							throw new Exception("Tool detail record couldn't be found for tool type of "+tool.getType());
+						}
 						tool.setToolDetail(toolDetails.get(tool.getType()));
+						if(tools.containsKey(tool.getCode())) {
+							br.close();
+							throw new Exception("More than one tool found with Tool Code of "+tool.getCode());
+						}
 						tools.put(tool.getCode(), tool);
 					}
 				}
