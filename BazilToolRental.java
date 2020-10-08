@@ -84,7 +84,7 @@ public class BazilToolRental {
 	}
 
 	//import data from toolTypeDetails.txt
-	private static HashMap<String, ToolDetail> importToolDetailsFile(File toolDetailsFile) {
+	private static HashMap<String, ToolDetail> importToolDetailsFile(File toolDetailsFile) throws Exception {
 		var toolDetails = new HashMap<String, ToolDetail>();
 		try {
 			var br = new BufferedReader(new FileReader(toolDetailsFile));
@@ -98,7 +98,12 @@ public class BazilToolRental {
 					if(headers[i].equals("Tool_Type")) {
 						toolDetail.setType(record.toUpperCase());
 					} if(headers[i].equals("Daily_Charge")) {
-						toolDetail.setDailyCharge(BigDecimal.valueOf(Double.parseDouble(record)));
+						try {
+							toolDetail.setDailyCharge(BigDecimal.valueOf(Double.parseDouble(record)));
+						} catch (Exception e) {
+							br.close();
+							throw new Exception("Given daily charge can't be parsed into a BigDecimal "+record);
+						}
 					} else if(headers[i].equals("Weekday_Charge")) {
 						toolDetail.setWeekdayCharge(record.equalsIgnoreCase("Y"));
 					} else if(headers[i].equals("Weekend_Charge")) {
